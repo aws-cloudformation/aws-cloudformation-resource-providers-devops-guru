@@ -1,0 +1,17 @@
+{
+  "Resources": {
+    "MyResourceCollection": {
+      "Type": "AWS::DevOpsGuru::ResourceCollection",
+      "Properties": {
+        "ResourceCollectionFilter": {
+          "CloudFormation": {
+            "StackNames": [
+              "MyStackName1",
+              "MyStackName2"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
