@@ -1,0 +1,7 @@
+{
+  "desiredResourceState": {
+    "ResourceCollectionType": "AWS_CLOUD_FORMATION"
+  },
+  "previousResourceState": {},
+  "logicalResourceIdentifier": "DevOpsGuruResourceCollectionResource"
+}
