@@ -1,0 +1,22 @@
+{
+    "typeName": "AWS::DevOpsGuru::ResourceCollection",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.devopsguru.resourcecollection.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.devopsguru.resourcecollection.HandlerWrapper::handleRequest",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "namespace": [
+            "software",
+            "amazon",
+            "devopsguru",
+            "resourcecollection"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    }
+}

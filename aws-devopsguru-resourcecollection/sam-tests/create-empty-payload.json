@@ -1,0 +1,11 @@
+{
+  "desiredResourceState": {
+    "ResourceCollectionFilter": {
+      "CloudFormation": {
+        "StackNames": []
+      }
+    }
+  },
+  "previousResourceState": {},
+  "logicalResourceIdentifier": "DevOpsGuruResourceCollectionResource"
+}
