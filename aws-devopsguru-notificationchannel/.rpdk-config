@@ -1,0 +1,22 @@
+{
+    "typeName": "AWS::DevOpsGuru::NotificationChannel",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.devopsguru.notificationchannel.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.devopsguru.notificationchannel.HandlerWrapper::handleRequest",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "namespace": [
+            "software",
+            "amazon",
+            "devopsguru",
+            "notificationchannel"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    }
+}

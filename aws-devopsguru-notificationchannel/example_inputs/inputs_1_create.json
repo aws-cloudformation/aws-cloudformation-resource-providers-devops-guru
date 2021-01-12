@@ -1,0 +1,14 @@
+{
+  "Resources": {
+    "MyNotificationChannel": {
+      "Type": "AWS::DevOpsGuru::NotificationChannel",
+      "Properties": {
+        "Config": {
+          "Sns": {
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:DefaultNotificationChannel"
+          }
+        }
+      }
+    }
+  }
+}

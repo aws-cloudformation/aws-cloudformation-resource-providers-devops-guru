@@ -1,0 +1,11 @@
+{
+  "desiredResourceState": {
+    "Config": {
+      "Sns": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:DefaultNotificationChannel"
+      }
+    }
+  },
+  "previousResourceState": {},
+  "logicalResourceIdentifier": "DevOpsGuruNotificationChannelResource"
+}
