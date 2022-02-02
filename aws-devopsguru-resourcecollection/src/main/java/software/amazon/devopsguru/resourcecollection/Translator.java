@@ -10,6 +10,7 @@ import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
 public class Translator {
     public static String AddAction = "ADD";
@@ -84,6 +85,31 @@ public class Translator {
             resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
         }
         return resourceModel;
+    }
+
+    /**
+     * Translates resource object from sdk into a list of resource model
+     *
+     * @param awsResponse the aws service describe resource response
+     * @return model resource model
+     */
+    static List<ResourceModel> translateFromListResponse(final GetResourceCollectionResponse awsResponse) {
+        List<ResourceModel> models = new ArrayList<ResourceModel>();
+        ResourceModel resourceModel = ResourceModel.builder().build();
+        if (awsResponse.resourceCollection().cloudFormation() != null) {
+            ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder()
+                    .cloudFormation(
+                            CloudFormationCollectionFilter.builder()
+                                    .stackNames(awsResponse.resourceCollection().cloudFormation().stackNames())
+                                    .build())
+                    .build();
+            resourceModel.setResourceCollectionFilter(resourceCollection);
+            resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
+        }
+        if(!awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty()){
+            models.add(resourceModel);
+        }
+        return models;
     }
 
     /**

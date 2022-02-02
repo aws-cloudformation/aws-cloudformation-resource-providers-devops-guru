@@ -2,7 +2,7 @@
   "desiredResourceState": {
     "Config": {
       "Sns": {
-        "TopicArn": "arn:aws:sns:us-east-1:123456789012:DefaultNotificationChannel"
+        "TopicArn": "{{NotificationChannelArn}}"
       }
     },
     "Id": "45f82612-e832-4011-ac15-856ab8492aa7"
