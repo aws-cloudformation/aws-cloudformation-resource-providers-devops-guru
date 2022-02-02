@@ -94,7 +94,7 @@ public class Translator {
      * @return model resource model
      */
     static List<ResourceModel> translateFromListResponse(final GetResourceCollectionResponse awsResponse) {
-        List<ResourceModel> models = new ArrayList();
+        List<ResourceModel> models = new ArrayList<ResourceModel>();
         ResourceModel resourceModel = ResourceModel.builder().build();
         if (awsResponse.resourceCollection().cloudFormation() != null) {
             ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder()
