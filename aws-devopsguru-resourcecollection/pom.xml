@@ -164,6 +164,7 @@
                         <exclude>**/BaseHandler*</exclude>
                         <exclude>**/HandlerWrapper*</exclude>
                         <exclude>**/ResourceModel*</exclude>
+                        <exclude>**/Translator*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
