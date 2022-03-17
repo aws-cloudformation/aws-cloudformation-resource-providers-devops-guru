@@ -124,7 +124,7 @@ public class Translator {
      * @return model resource model
      */
     static List<ResourceModel> translateFromListResponse(final GetResourceCollectionResponse awsResponse) {
-        List<ResourceModel> models = new ArrayList();
+        List<ResourceModel> models = new ArrayList<ResourceModel>();
         ResourceModel resourceModel = translateFromReadResponse(awsResponse);
         if ((Objects.nonNull(awsResponse.resourceCollection().cloudFormation()) && !awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty()
         ) || (!awsResponse.resourceCollection().tags().isEmpty() && !awsResponse.resourceCollection().tags().get(0).tagValues().isEmpty())) {
