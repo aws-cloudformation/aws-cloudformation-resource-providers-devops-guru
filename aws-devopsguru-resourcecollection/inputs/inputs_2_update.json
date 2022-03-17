@@ -3,7 +3,10 @@
     "Tags": [
       {
         "AppBoundaryKey": "devops-guru-MyTagKey",
-        "TagValues": ["MyTagValue3", "MyTagValue4"]
+        "TagValues": [
+          "MyTagValue3",
+          "MyTagValue4"
+        ]
       }
     ]
   },
