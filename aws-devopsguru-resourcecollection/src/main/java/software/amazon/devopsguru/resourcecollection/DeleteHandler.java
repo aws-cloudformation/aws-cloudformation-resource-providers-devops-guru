@@ -1,5 +1,6 @@
 package software.amazon.devopsguru.resourcecollection;
 
+import com.amazonaws.auth.policy.Resource;
 import software.amazon.awssdk.services.devopsguru.DevOpsGuruClient;
 import software.amazon.awssdk.services.devopsguru.model.AccessDeniedException;
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionRequest;
@@ -7,7 +8,10 @@ import software.amazon.awssdk.services.devopsguru.model.InternalServerException;
 import software.amazon.awssdk.services.devopsguru.model.ThrottlingException;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionRequest;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionResponse;
+import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionResponse;
+import software.amazon.awssdk.services.devopsguru.model.TagCollectionFilter;
 import software.amazon.awssdk.services.devopsguru.model.ValidationException;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionType;
 import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
@@ -18,6 +22,8 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.Arrays;
 
 public class DeleteHandler extends BaseHandlerStd {
     private Logger logger;
@@ -36,7 +42,7 @@ public class DeleteHandler extends BaseHandlerStd {
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-DevOpsGuru-ResourceCollection::Delete", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(Translator::translateToRemoveResourceCollectionRequest)
+                                .translateToServiceRequest(Translator::translateToRemoveCloudFormationResourceCollectionRequest)
                                 .backoffDelay(BACKOFF_STRATEGY)
                                 .makeServiceCall((awsRequest, client) -> deleteResource(awsRequest, client, model, callbackContext))
                                 .progress()
@@ -55,19 +61,31 @@ public class DeleteHandler extends BaseHandlerStd {
      * @return delete resource response
      */
     private UpdateResourceCollectionResponse deleteResource(
-            final UpdateResourceCollectionRequest updateResourceCollectionRequest,
+            UpdateResourceCollectionRequest updateResourceCollectionRequest,
             final ProxyClient<DevOpsGuruClient> proxyClient,
             final ResourceModel model,
             final CallbackContext callbackContext){
         UpdateResourceCollectionResponse awsResponse = null;
 
+        if(model.getResourceCollectionType() == null
+                || (model.getResourceCollectionFilter().getCloudFormation() != null
+                && model.getResourceCollectionFilter().getTags() != null)) {
+            throw new CfnInvalidRequestException("Input request is invalid, missing ResourceCollectionType " +
+                    "or too many ResourceCollectionFilter");
+        }
+
         try {
             GetResourceCollectionRequest getResourceCollectionRequest = GetResourceCollectionRequest.builder()
-                    .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName())
+                    .resourceCollectionType(ResourceCollectionType.fromValue(model.getResourceCollectionType()))
                     .nextToken(null)
                     .build();
             checkIsEmptyResourceCollection(getResourceCollectionRequest, proxyClient, model, logger);
-
+            // for TAGS, we need get AppBoundaryKey to reconstruct the request
+            if(ResourceCollectionType.AWS_TAGS.name().equals(model.getResourceCollectionType())) {
+                GetResourceCollectionResponse getResourceCollectionResponse = getSingleResourceCollection(getResourceCollectionRequest, proxyClient, model);
+                   TagCollectionFilter tagCollection = getResourceCollectionResponse.resourceCollection().tags().get(0);
+                   updateResourceCollectionRequest = Translator.translateToRemoveTagsResourceCollectionRequest(tagCollection.appBoundaryKey());
+            }
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(updateResourceCollectionRequest, proxyClient.client()::updateResourceCollection);;
             logger.log(String.format("PutResourceFilter response: %s", awsResponse.toString()));
         } catch (final AccessDeniedException e) {

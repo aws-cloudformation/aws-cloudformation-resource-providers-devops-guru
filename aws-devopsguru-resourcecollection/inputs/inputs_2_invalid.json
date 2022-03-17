@@ -1,0 +1,13 @@
+{
+  "ResourceCollectionFilter": {
+    "Tags": [
+      {
+        "TagValues": [
+          "MyTagValue1",
+          "MyTagValue2"
+        ]
+      }
+    ]
+  },
+  "ResourceCollectionType": "AWS_TAGS"
+}

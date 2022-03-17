@@ -19,10 +19,11 @@ public class ListHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        final ResourceModel model = request.getDesiredResourceState();
 
         final GetResourceCollectionRequest getResourceCollectionRequest =
                 GetResourceCollectionRequest.builder()
-                        .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName())
+                        .resourceCollectionType(model.getResourceCollectionType())
                         .nextToken(request.getNextToken())
                         .build();
 

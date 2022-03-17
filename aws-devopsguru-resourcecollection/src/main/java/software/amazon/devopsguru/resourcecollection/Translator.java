@@ -5,12 +5,16 @@ import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionRes
 import software.amazon.awssdk.services.devopsguru.model.UpdateCloudFormationCollectionFilter;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionFilter;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionRequest;
+import software.amazon.awssdk.services.devopsguru.model.UpdateTagCollectionFilter;
+import software.amazon.awssdk.services.devopsguru.model.TagCollectionFilter;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionType;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Translator {
     public static String AddAction = "ADD";
@@ -25,11 +29,7 @@ public class Translator {
      */
     static UpdateResourceCollectionRequest translateToAddResourceCollectionRequest(final ResourceModel model) {
         UpdateResourceCollectionRequest updateResourceCollectionRequest;
-        if (model.getResourceCollectionFilter().getCloudFormation() != null) {
-
-            // TODO: Set this value in the Handler instead of the Request
-            model.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
-
+        if (ResourceCollectionType.AWS_CLOUD_FORMATION.name().equals(model.getResourceCollectionType())) {
             CloudFormationCollectionFilter cloudFormation = model.getResourceCollectionFilter().getCloudFormation();
             if (cloudFormation.getStackNames() == null || cloudFormation.getStackNames().size() == 0) {
                 throw new CfnInvalidRequestException("Empty or missing stack names");
@@ -43,6 +43,23 @@ public class Translator {
 
             updateResourceCollectionRequest = UpdateResourceCollectionRequest.builder()
                     .resourceCollection(resourceCollectionConfigFromModel(model))
+                    .build();
+        } else if (ResourceCollectionType.AWS_TAGS.name().equals(model.getResourceCollectionType())) {
+            List<TagCollection> tags = model.getResourceCollectionFilter().getTags();
+            if (tags.size() != 1) {
+                throw new CfnInvalidRequestException("Invalid TagCollectionFilters, only 1 TagCollection is allowed");
+            }
+            TagCollection tagCollection = tags.get(0);
+            if (tagCollection.getAppBoundaryKey() == null
+                    || tagCollection.getTagValues().isEmpty()
+                    || !tagCollection.getAppBoundaryKey().toLowerCase().startsWith("devops-guru-")) {
+                throw new CfnInvalidRequestException("Invalid AppBoundaryKey & TagValues, need to start with DevOps Guru prefix");
+            }
+            if (tagCollection.getTagValues().contains("*") && tagCollection.getTagValues().size() > 1) {
+                throw new CfnInvalidRequestException("Star selection can only be used in isolation");
+            }
+            updateResourceCollectionRequest = UpdateResourceCollectionRequest.builder()
+                    .resourceCollection(tagCollectionConfigFromModel(model))
                     .build();
         } else {
             throw new CfnInvalidRequestException("Missing or invalid input");
@@ -58,7 +75,8 @@ public class Translator {
      */
     static GetResourceCollectionRequest translateToGetResourceCollectionRequest(final ResourceModel model) {
         if (model.getResourceCollectionType() == null
-                || !model.getResourceCollectionType().equals(ResourceCollectionType.AWS_CLOUD_FORMATION.getName())) {
+                || (!ResourceCollectionType.AWS_CLOUD_FORMATION.name().equals(model.getResourceCollectionType())
+                && !ResourceCollectionType.AWS_TAGS.name().equals(model.getResourceCollectionType()))) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, "Resource not found.");
         }
         return GetResourceCollectionRequest.builder()
@@ -82,7 +100,19 @@ public class Translator {
                                     .build())
                     .build();
             resourceModel.setResourceCollectionFilter(resourceCollection);
-            resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
+            resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name());
+        }
+        if(!awsResponse.resourceCollection().tags().isEmpty()) {
+            TagCollectionFilter tagCollectionFilter = awsResponse.resourceCollection().tags().get(0);
+            TagCollection tagCollection = TagCollection.builder()
+                    .appBoundaryKey(tagCollectionFilter.appBoundaryKey())
+                    .tagValues(tagCollectionFilter.tagValues())
+                    .build();
+            ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder()
+                    .tags(Arrays.asList(tagCollection))
+                    .build();
+            resourceModel.setResourceCollectionFilter(resourceCollection);
+            resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_TAGS.name());
         }
         return resourceModel;
     }
@@ -95,18 +125,9 @@ public class Translator {
      */
     static List<ResourceModel> translateFromListResponse(final GetResourceCollectionResponse awsResponse) {
         List<ResourceModel> models = new ArrayList<ResourceModel>();
-        ResourceModel resourceModel = ResourceModel.builder().build();
-        if (awsResponse.resourceCollection().cloudFormation() != null) {
-            ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder()
-                    .cloudFormation(
-                            CloudFormationCollectionFilter.builder()
-                                    .stackNames(awsResponse.resourceCollection().cloudFormation().stackNames())
-                                    .build())
-                    .build();
-            resourceModel.setResourceCollectionFilter(resourceCollection);
-            resourceModel.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
-        }
-        if(!awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty()){
+        ResourceModel resourceModel = translateFromReadResponse(awsResponse);
+        if ((Objects.nonNull(awsResponse.resourceCollection().cloudFormation()) && !awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty()
+        ) || (!awsResponse.resourceCollection().tags().isEmpty() && !awsResponse.resourceCollection().tags().get(0).tagValues().isEmpty())) {
             models.add(resourceModel);
         }
         return models;
@@ -118,12 +139,25 @@ public class Translator {
      * @param model resource model
      * @return awsRequest the aws service request to delete a resource
      */
-    static UpdateResourceCollectionRequest translateToRemoveResourceCollectionRequest(final ResourceModel model) {
+    static UpdateResourceCollectionRequest translateToRemoveCloudFormationResourceCollectionRequest(final ResourceModel model) {
         return UpdateResourceCollectionRequest.builder()
                 .resourceCollection(
                         UpdateResourceCollectionFilter.builder().cloudFormation(
                                 UpdateCloudFormationCollectionFilter.builder().stackNames(Arrays.asList(DeleteStackNames)).build()
                         ).build())
+                .action(RemoveAction)
+                .build();
+    }
+
+    static UpdateResourceCollectionRequest translateToRemoveTagsResourceCollectionRequest(final String appBoundaryKey) {
+        UpdateTagCollectionFilter updateTagsFilter = UpdateTagCollectionFilter.builder()
+                .appBoundaryKey(appBoundaryKey)
+                .tagValues(Arrays.asList(DeleteStackNames)).build();
+
+        return UpdateResourceCollectionRequest.builder()
+                .resourceCollection(UpdateResourceCollectionFilter.builder().tags(
+                        Arrays.asList(updateTagsFilter)
+                ).build())
                 .action(RemoveAction)
                 .build();
     }
@@ -134,4 +168,17 @@ public class Translator {
                 UpdateCloudFormationCollectionFilter.builder().stackNames(stackNames).build();
         return UpdateResourceCollectionFilter.builder().cloudFormation(updateCloudFormationCollectionFilter).build();
     }
+
+
+    private static UpdateResourceCollectionFilter tagCollectionConfigFromModel(final ResourceModel model) {
+        TagCollection tagCollection = model.getResourceCollectionFilter().getTags().get(0);
+        String appBoundaryKey = tagCollection.getAppBoundaryKey();
+        List<String> tagValues = tagCollection.getTagValues();
+        UpdateTagCollectionFilter updateTagsFilter = UpdateTagCollectionFilter.builder()
+                .appBoundaryKey(appBoundaryKey)
+                .tagValues(tagValues).build();
+        return UpdateResourceCollectionFilter.builder().tags(
+                Arrays.asList(updateTagsFilter)).build();
+    }
+
 }
