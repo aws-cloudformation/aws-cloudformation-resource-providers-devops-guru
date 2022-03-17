@@ -1,8 +1,10 @@
 package software.amazon.devopsguru.resourcecollection;
 
 import software.amazon.awssdk.services.devopsguru.DevOpsGuruClient;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionType;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionRequest;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionResponse;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -23,6 +25,22 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+
+        if(model.getResourceCollectionFilter().getCloudFormation() != null
+                && model.getResourceCollectionFilter().getTags() == null) {
+            model.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name());
+        }
+
+        if(model.getResourceCollectionFilter().getCloudFormation() == null
+                && model.getResourceCollectionFilter().getTags() != null) {
+            model.setResourceCollectionType(ResourceCollectionType.AWS_TAGS.name());
+        }
+
+        if(model.getResourceCollectionType().isEmpty() ||
+                (model.getResourceCollectionFilter().getCloudFormation() != null
+                        && model.getResourceCollectionFilter().getTags() != null)) {
+            throw new CfnInvalidRequestException("Invalid input, you can only have Tags or CloudFormation filter");
+        }
 
         // TODO: Confirm with Uluru if the Create Handler could update the resources users created at console
         return ProgressEvent.progress(model, callbackContext)
@@ -50,8 +68,8 @@ public class CreateHandler extends BaseHandlerStd {
             final ProxyClient<DevOpsGuruClient> client,
             final ResourceModel model,
             final Logger logger) {
-        UpdateResourceCollectionResponse awsResponse = updateResourceCollection(awsRequest, client, model, logger, true);
-        model.setResourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.getName());
+        UpdateResourceCollectionResponse awsResponse = null;
+        awsResponse = updateResourceCollection(awsRequest, client, model, logger, true);
         logger.log(String.format("%s successfully created. Generated UpdateResourceCollection response: %s", ResourceModel.TYPE_NAME, awsResponse.toString()));
         return awsResponse;
     }

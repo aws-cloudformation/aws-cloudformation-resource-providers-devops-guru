@@ -10,7 +10,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 <pre>
 {
-    "<a href="#cloudformation" title="CloudFormation">CloudFormation</a>" : <i><a href="cloudformationcollectionfilter.md">CloudFormationCollectionFilter</a></i>
+    "<a href="#cloudformation" title="CloudFormation">CloudFormation</a>" : <i><a href="cloudformationcollectionfilter.md">CloudFormationCollectionFilter</a></i>,
+    "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tagcollection.md">TagCollection</a>, ... ]</i>
 }
 </pre>
 
@@ -18,6 +19,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 <pre>
 <a href="#cloudformation" title="CloudFormation">CloudFormation</a>: <i><a href="cloudformationcollectionfilter.md">CloudFormationCollectionFilter</a></i>
+<a href="#tags" title="Tags">Tags</a>: <i>
+      - <a href="tagcollection.md">TagCollection</a></i>
 </pre>
 
 ## Properties
@@ -31,3 +34,14 @@ _Required_: No
 _Type_: <a href="cloudformationcollectionfilter.md">CloudFormationCollectionFilter</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Tags
+
+Tagged resources for DevOps Guru to monitor
+
+_Required_: No
+
+_Type_: List of <a href="tagcollection.md">TagCollection</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+

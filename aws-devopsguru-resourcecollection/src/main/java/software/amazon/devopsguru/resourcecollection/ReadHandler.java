@@ -5,12 +5,15 @@ import software.amazon.awssdk.services.devopsguru.model.CloudFormationCollection
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionRequest;
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionResponse;
 import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionType;
+import software.amazon.awssdk.services.devopsguru.model.TagCollectionFilter;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ReadHandler extends BaseHandlerStd {
@@ -45,17 +48,30 @@ public class ReadHandler extends BaseHandlerStd {
             final ProxyClient<DevOpsGuruClient> proxyClient,
             final ResourceModel model) {
         GetResourceCollectionResponse awsResponse = null;
-
-        List<String> awsResponseStackNames = getAllResourceCollection(getResourceCollectionRequest, proxyClient, model, logger);
-        awsResponse = GetResourceCollectionResponse.builder().resourceCollection(
-                ResourceCollectionFilter.builder()
-                        .cloudFormation(
-                                CloudFormationCollectionFilter.builder()
-                                        .stackNames(awsResponseStackNames)
-                                        .build())
-                        .build())
-                .build();
-
+        if(getResourceCollectionRequest.resourceCollectionType().equals(ResourceCollectionType.AWS_CLOUD_FORMATION)){
+            List<String> awsResponseStackNames = getAllCloudFormationResourceCollection(getResourceCollectionRequest, proxyClient, model, logger);
+            awsResponse = GetResourceCollectionResponse.builder().resourceCollection(
+                    ResourceCollectionFilter.builder()
+                            .cloudFormation(
+                                    CloudFormationCollectionFilter.builder()
+                                            .stackNames(awsResponseStackNames)
+                                            .build())
+                            .build())
+                    .build();
+        }
+        if(getResourceCollectionRequest.resourceCollectionType().equals(ResourceCollectionType.AWS_TAGS)){
+            TagCollection allTagCollection = getAllTagsResourceCollection(getResourceCollectionRequest, proxyClient, model, logger);
+            awsResponse = GetResourceCollectionResponse.builder().resourceCollection(
+                    ResourceCollectionFilter.builder()
+                            .tags(Arrays.asList(
+                                    TagCollectionFilter.builder()
+                                    .appBoundaryKey(allTagCollection.getAppBoundaryKey())
+                                    .tagValues(allTagCollection.getTagValues())
+                                    .build()
+                            ))
+                            .build())
+                    .build();
+        }
         logger.log(String.format("GetResourceCollection response: %s. %s has successfully been read.", awsResponse.toString(), ResourceModel.TYPE_NAME));
         return awsResponse;
     }

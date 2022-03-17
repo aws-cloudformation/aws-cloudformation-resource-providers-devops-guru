@@ -6,16 +6,18 @@ import java.util.Arrays;
 import java.util.List;
 
 import software.amazon.awssdk.services.devopsguru.DevOpsGuruClient;
-import software.amazon.awssdk.services.devopsguru.model.AccessDeniedException;
-import software.amazon.awssdk.services.devopsguru.model.CloudFormationCollectionFilter;
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionRequest;
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionResponse;
 import software.amazon.awssdk.services.devopsguru.model.InternalServerException;
-import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter;
 import software.amazon.awssdk.services.devopsguru.model.ThrottlingException;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionRequest;
 import software.amazon.awssdk.services.devopsguru.model.UpdateResourceCollectionResponse;
+import software.amazon.awssdk.services.devopsguru.model.TagCollectionFilter;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionType;
 import software.amazon.awssdk.services.devopsguru.model.ValidationException;
+import software.amazon.awssdk.services.devopsguru.model.AccessDeniedException;
+import software.amazon.awssdk.services.devopsguru.model.CloudFormationCollectionFilter;
+import software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter;
 import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -63,7 +65,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_DoNothing() {
+    public void handleRequest_CloudFormation_DoNothing() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("StackName")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -73,6 +75,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollectionFilter = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollectionFilter)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -93,7 +96,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_OnlyAdd() {
+    public void handleRequest_CloudFormation_OnlyAdd() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("A")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -106,6 +109,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -126,11 +130,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_UpdateStackNameIsEmpty() {
+    public void handleRequest_CloudFormation_UpdateStackNameIsEmpty() {
         final software.amazon.devopsguru.resourcecollection.CloudFormationCollectionFilter cloudFormation = software.amazon.devopsguru.resourcecollection.CloudFormationCollectionFilter.builder().stackNames(Arrays.asList()).build();
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -140,7 +145,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_BothAddAndRemove() {
+    public void handleRequest_CloudFormation_BothAddAndRemove() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("StackName")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -153,6 +158,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -173,7 +179,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_UpdateStackNameSizeGreaterThanOneBatch() {
+    public void handleRequest_CloudFormation_UpdateStackNameSizeGreaterThanOneBatch() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("1")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -192,6 +198,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -212,7 +219,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_UpdateStackNameIsStar() {
+    public void handleRequest_CloudFormation_UpdateStackNameIsStar() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("A")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -225,6 +232,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -245,7 +253,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_ExistingStackNameIsStar() {
+    public void handleRequest_CloudFormation_ExistingStackNameIsStar() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("*")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -258,6 +266,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -278,7 +287,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_ExistingEmpty() {
+    public void handleRequest_CloudFormation_ExistingEmpty() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList()).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -288,6 +297,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -297,11 +307,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_UpdateStackNameHasMoreThanStar() {
+    public void handleRequest_CloudFormation_UpdateStackNameHasMoreThanStar() {
         final software.amazon.devopsguru.resourcecollection.CloudFormationCollectionFilter cloudFormation = software.amazon.devopsguru.resourcecollection.CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("StackName1", "*")).build();
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -312,7 +323,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_Exceptions() {
+    public void handleRequest_CloudFormation_Exceptions() {
         final CloudFormationCollectionFilter cloudFormationCollection = CloudFormationCollectionFilter.builder().stackNames(Arrays.asList("StackName")).build();
         final ResourceCollectionFilter resourceCollection = ResourceCollectionFilter.builder().cloudFormation(cloudFormationCollection).build();
         final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
@@ -322,6 +333,329 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection = software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().cloudFormation(cloudFormation).build();
         final ResourceModel model = ResourceModel.builder()
                 .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenThrow(AccessDeniedException.class);
+        assertThatExceptionOfType(CfnAccessDeniedException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenThrow(ThrottlingException.class);
+        assertThatExceptionOfType(CfnThrottlingException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenThrow(InternalServerException.class);
+        assertThatExceptionOfType(CfnServiceInternalErrorException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenThrow(ValidationException.class);
+        assertThatExceptionOfType(CfnInvalidRequestException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+
+    @Test
+    public void handleRequest_Tags_DoNothing() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollectionFilter =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollectionFilter)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client(), times(0)).updateResourceCollection(any(UpdateResourceCollectionRequest.class));
+    }
+
+    @Test
+    public void handleRequest_Tags_OnlyAdd() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("A")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final UpdateResourceCollectionResponse updateResourceCollectionResponse = UpdateResourceCollectionResponse.builder().build();
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenReturn(updateResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("A", "TagName")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client(), times(1)).updateResourceCollection(any(UpdateResourceCollectionRequest.class));
+    }
+
+    @Test
+    public void handleRequest_Tags_UpdateTagValuesIsEmpty() {
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList()).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThatExceptionOfType(CfnInvalidRequestException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_Tags_BothAddAndRemove() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final UpdateResourceCollectionResponse updateResourceCollectionResponse = UpdateResourceCollectionResponse.builder().build();
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenReturn(updateResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName2")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client(), times(2)).updateResourceCollection(any(UpdateResourceCollectionRequest.class));
+    }
+
+    @Test
+    public void handleRequest_Tags_UpdateTagValueIsStar() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final UpdateResourceCollectionResponse updateResourceCollectionResponse = UpdateResourceCollectionResponse.builder().build();
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenReturn(updateResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("*")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client(), times(1)).updateResourceCollection(any(UpdateResourceCollectionRequest.class));
+    }
+
+    @Test
+    public void handleRequest_Tags_ExistingTagValuesIsStar() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("*")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final UpdateResourceCollectionResponse updateResourceCollectionResponse = UpdateResourceCollectionResponse.builder().build();
+        when(proxyClient.client().updateResourceCollection(any(UpdateResourceCollectionRequest.class))).thenReturn(updateResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client(), times(1)).updateResourceCollection(any(UpdateResourceCollectionRequest.class));
+    }
+
+    @Test
+    public void handleRequest_Tags_ExistingEmpty() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList()).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThatExceptionOfType(CfnNotFoundException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_Tags_UpdateTagValuesHasMoreThanStar() {
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("TagKey")
+                        .tagValues(Arrays.asList("TagName", "*")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThatExceptionOfType(CfnInvalidRequestException.class).isThrownBy(() -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_Tags_Exceptions() {
+        final TagCollectionFilter tagCollectionFilter =
+                TagCollectionFilter.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("TagName")).build();
+        final software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter resourceCollection=
+                software.amazon.awssdk.services.devopsguru.model.ResourceCollectionFilter.builder().tags(tagCollectionFilter).build();
+        final GetResourceCollectionResponse getResourceCollectionResponse = GetResourceCollectionResponse.builder().resourceCollection(resourceCollection).build();
+        when(proxyClient.client().getResourceCollection(any(GetResourceCollectionRequest.class))).thenReturn(getResourceCollectionResponse);
+
+        final software.amazon.devopsguru.resourcecollection.TagCollection tagCollection =
+                software.amazon.devopsguru.resourcecollection.TagCollection.builder()
+                        .appBoundaryKey("DevOps-Guru-TagKey")
+                        .tagValues(Arrays.asList("*")).build();
+        final software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter model_resourceCollection =
+                software.amazon.devopsguru.resourcecollection.ResourceCollectionFilter.builder().tags(Arrays.asList(tagCollection)).build();
+
+        final ResourceModel model = ResourceModel.builder()
+                .resourceCollectionFilter(model_resourceCollection)
+                .resourceCollectionType(ResourceCollectionType.AWS_TAGS.name())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
