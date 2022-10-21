@@ -13,9 +13,6 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import static software.amazon.devopsguru.notificationchannel.constants.FilterConstants.INSIGHT_SEVERITIES;
-import static software.amazon.devopsguru.notificationchannel.constants.FilterConstants.MESSAGE_TYPES;
-
 public class ListHandler extends BaseHandlerStd {
     private Logger logger;
 
@@ -67,15 +64,9 @@ public class ListHandler extends BaseHandlerStd {
 
         awsResponse.channels().forEach(channel -> {
             if(channel.config().sns() != null) {
-                String topicArn = channel.config().sns().topicArn();
-                List<String> severities = processNotificationFilters(INSIGHT_SEVERITIES, channel.config().filters());
-                List<String> messageTypes = processNotificationFilters(MESSAGE_TYPES, channel.config().filters());
-
+                SnsChannelConfig sns = SnsChannelConfig.builder().topicArn(channel.config().sns().topicArn()).build();
                 models.add(ResourceModel.builder()
-                        .config(NotificationChannelConfig.builder()
-                                .sns(new SnsChannelConfig(topicArn))
-                                .filters(new NotificationFilterConfig(severities, messageTypes))
-                                .build())
+                        .config(new NotificationChannelConfig(sns))
                         .id(channel.id())
                         .build());
             }
