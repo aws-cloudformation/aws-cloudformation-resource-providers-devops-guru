@@ -35,3 +35,4 @@ _Maximum_: <code>1024</code>
 _Pattern_: <code>^arn:aws[a-z0-9-]*:sns:[a-z0-9-]+:\d{12}:[^:]+$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
