@@ -7,6 +7,12 @@ import software.amazon.awssdk.services.devopsguru.model.RemoveNotificationChanne
 import software.amazon.awssdk.services.devopsguru.model.SnsChannelConfig;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
+import java.util.List;
+
+import static software.amazon.devopsguru.notificationchannel.constants.FilterConstants.INSIGHT_SEVERITIES;
+import static software.amazon.devopsguru.notificationchannel.constants.FilterConstants.MESSAGE_TYPES;
+
+
 /**
  * This class is a centralized placeholder for
  *  - api request construction
@@ -52,23 +58,55 @@ public class Translator {
             .build();
   }
 
-  static ResourceModel translateFromReadResponse(final String topicArn, final String id) {
+  static ResourceModel translateFromReadResponse(final String topicArn, final String id,
+                                                 List<String> severities,
+                                                 List<String> messageTypes) {
 
-    software.amazon.devopsguru.notificationchannel.SnsChannelConfig sns =
+    final software.amazon.devopsguru.notificationchannel.SnsChannelConfig sns =
             software.amazon.devopsguru.notificationchannel.SnsChannelConfig.builder().topicArn(topicArn).build();
 
-    software.amazon.devopsguru.notificationchannel.NotificationChannelConfig config =
-    software.amazon.devopsguru.notificationchannel.NotificationChannelConfig.builder().sns(sns).build();
+    final NotificationFilterConfig filters = NotificationFilterConfig.builder()
+            .severities(severities)
+            .messageTypes(messageTypes)
+            .build();
+
+    final software.amazon.devopsguru.notificationchannel.NotificationChannelConfig config =
+    software.amazon.devopsguru.notificationchannel.NotificationChannelConfig.builder()
+            .sns(sns)
+            .filters(filters)
+            .build();
     return ResourceModel.builder()
             .config(config)
             .id(id)
             .build();
-
   }
 
   private static NotificationChannelConfig configFromModel(final ResourceModel model) {
-    String topicArn = model.getConfig().getSns().getTopicArn();
+    final String topicArn = model.getConfig().getSns().getTopicArn();
+    final NotificationFilterConfig notificationFilterConfig = model.getConfig().getFilters();
 
-    return NotificationChannelConfig.builder().sns(SnsChannelConfig.builder().topicArn(topicArn).build()).build();
+    final software.amazon.awssdk.services.devopsguru.model.NotificationFilterConfig filters =
+            software.amazon.awssdk.services.devopsguru.model.NotificationFilterConfig.builder()
+                    .severitiesWithStrings(translateToNotificationFiltersFromModel(INSIGHT_SEVERITIES, notificationFilterConfig))
+                    .messageTypesWithStrings(translateToNotificationFiltersFromModel(MESSAGE_TYPES, notificationFilterConfig))
+                    .build();
+
+    return NotificationChannelConfig.builder()
+            .sns(SnsChannelConfig.builder().topicArn(topicArn).build())
+            .filters(filters)
+            .build();
+  }
+
+  private static List<String> translateToNotificationFiltersFromModel(final String fieldName,
+                                                                      final NotificationFilterConfig notificationFilterConfig) {
+
+    if (notificationFilterConfig == null) {
+      return null;
+    }
+
+    if (INSIGHT_SEVERITIES.equals(fieldName)) {
+      return notificationFilterConfig.getSeverities();
+    }
+    return notificationFilterConfig.getMessageTypes();
   }
 }
