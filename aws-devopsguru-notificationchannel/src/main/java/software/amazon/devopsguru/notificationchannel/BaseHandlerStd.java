@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.devopsguru.model.AccessDeniedException;
 import software.amazon.awssdk.services.devopsguru.model.InternalServerException;
 import software.amazon.awssdk.services.devopsguru.model.ListNotificationChannelsRequest;
 import software.amazon.awssdk.services.devopsguru.model.ListNotificationChannelsResponse;
+import software.amazon.awssdk.services.devopsguru.model.NotificationFilterConfig;
 import software.amazon.awssdk.services.devopsguru.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.devopsguru.model.ThrottlingException;
 import software.amazon.awssdk.services.devopsguru.model.ValidationException;
@@ -18,6 +19,10 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.List;
+
+import static software.amazon.devopsguru.notificationchannel.constants.FilterConstants.INSIGHT_SEVERITIES;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
@@ -66,4 +71,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return awsResponse;
     }
 
+    protected final List<String> processNotificationFilters(final String fieldName,
+                                                            final NotificationFilterConfig filters) {
+          if (filters == null) {
+              return null;
+          }
+          if (INSIGHT_SEVERITIES.equals(fieldName)) {
+              return filters.severitiesAsStrings().isEmpty() ? null: filters.severitiesAsStrings();
+          }
+          return filters.messageTypesAsStrings().isEmpty() ? null: filters.messageTypesAsStrings();
+    }
 }
