@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    name: Java CI with Maven
     env:
       AWS_DEFAULT_REGION: us-east-1
       AWS_REGION: us-east-1
