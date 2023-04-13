@@ -40,4 +40,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### AccountId
 
 User account id, used as the primary identifier for the resource
-

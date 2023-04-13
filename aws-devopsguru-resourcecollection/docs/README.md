@@ -52,4 +52,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### ResourceCollectionType
 
 The type of ResourceCollection
-

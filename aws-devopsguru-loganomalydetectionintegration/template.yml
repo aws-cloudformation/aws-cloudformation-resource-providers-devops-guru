@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.devopsguru.loganomalydetectionintegration.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-devopsguru-loganomalydetectionintegration-1.0.jar
-
