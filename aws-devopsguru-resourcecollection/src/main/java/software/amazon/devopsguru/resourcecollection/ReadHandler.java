@@ -29,6 +29,7 @@ public class ReadHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+        logger.log(String.format("check ResourceModel from ReadHandler: %s", model.toString()));
 
         return proxy.initiate("AWS-DevOpsGuru-ResourceCollection::Read", proxyClient, request.getDesiredResourceState(), callbackContext)
                 .translateToServiceRequest(Translator::translateToGetResourceCollectionRequest)

@@ -52,3 +52,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### Id
 
 The ID of a notification channel.
+

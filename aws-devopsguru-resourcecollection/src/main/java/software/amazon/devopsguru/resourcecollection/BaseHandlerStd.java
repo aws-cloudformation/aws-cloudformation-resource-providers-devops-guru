@@ -65,6 +65,20 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ProxyClient<DevOpsGuruClient> proxyClient,
             final Logger logger);
 
+    protected  GetResourceCollectionRequest getResourceCollectionRequestWithResourceCollectionType(
+            String resourceCollectionType
+    ) {
+        return GetResourceCollectionRequest.builder()
+                .resourceCollectionType(resourceCollectionType)
+                .build();
+    }
+
+    protected GetResourceCollectionRequest getResourceCollectionRequestWithResourceCollectionType(
+            ResourceCollectionType resourceCollectionType
+    ) {
+        return getResourceCollectionRequestWithResourceCollectionType(resourceCollectionType.toString());
+    }
+
     protected GetResourceCollectionResponse getSingleResourceCollection(
             final GetResourceCollectionRequest getResourceCollectionRequest,
             final ProxyClient<DevOpsGuruClient> proxyClient,
@@ -74,8 +88,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         try {
             GetResourceCollectionResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest,
                     proxyClient.client()::getResourceCollection);
-            if (awsResponse.resourceCollection().cloudFormation() == null &&
-                    ResourceCollectionType.AWS_CLOUD_FORMATION.name().equals(model.getResourceCollectionType())) {
+            if (ResourceCollectionType.AWS_CLOUD_FORMATION.name().equals(model.getResourceCollectionType())
+                    && (awsResponse.resourceCollection().cloudFormation() == null
+                        || awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty())) {
                 throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getResourceCollectionType());
             }
             if (ResourceCollectionType.AWS_TAGS.name().equals(model.getResourceCollectionType())
@@ -104,19 +119,21 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         GetResourceCollectionRequest awsRequest = getResourceCollectionRequest;
         List<String> stackNamesList = new ArrayList<>();
 
-        do {
-            awsResponse = getSingleResourceCollection(awsRequest, proxyClient, model);
-            stackNamesList.addAll(awsResponse.resourceCollection().cloudFormation().stackNames());
-            awsRequest = GetResourceCollectionRequest.builder()
-                    .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION)
-                    .nextToken(awsResponse.nextToken())
-                    .build();
-        } while (awsResponse.nextToken() != null);
-
-        // Interpret empty stacks as RNF
-        if (stackNamesList.isEmpty()) {
-            logger.log("Empty resource collection. Throwing NotFoundException");
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getResourceCollectionType());
+        try {
+            do {
+                awsResponse = getSingleResourceCollection(awsRequest, proxyClient, model);
+                stackNamesList.addAll(awsResponse.resourceCollection().cloudFormation().stackNames());
+                awsRequest = GetResourceCollectionRequest.builder()
+                        .resourceCollectionType(ResourceCollectionType.AWS_CLOUD_FORMATION)
+                        .nextToken(awsResponse.nextToken())
+                        .build();
+            } while (awsResponse.nextToken() != null);
+        } catch (CfnNotFoundException ex) {
+            // Interpret empty stacks as RNF
+            if (stackNamesList.isEmpty()) {
+                logger.log("Empty resource collection. Throwing NotFoundException");
+                throw ex;
+            }
         }
 
         return stackNamesList;
@@ -132,20 +149,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         List<String> tagValues = new ArrayList<>();
         String appBoundaryKey = null;
 
-        do {
-            awsResponse = getSingleResourceCollection(awsRequest, proxyClient, model);
-            tagValues.addAll(awsResponse.resourceCollection().tags().get(0).tagValues());
-            appBoundaryKey  = awsResponse.resourceCollection().tags().get(0).appBoundaryKey();
-            awsRequest = GetResourceCollectionRequest.builder()
-                    .resourceCollectionType(ResourceCollectionType.AWS_TAGS)
-                    .nextToken(awsResponse.nextToken())
-                    .build();
-        } while (awsResponse.nextToken() != null);
-
-        // Interpret empty stacks as RNF
-        if (tagValues.isEmpty()) {
-            logger.log("Empty resource collection. Throwing NotFoundException");
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getResourceCollectionType());
+        try {
+            do {
+                awsResponse = getSingleResourceCollection(awsRequest, proxyClient, model);
+                tagValues.addAll(awsResponse.resourceCollection().tags().get(0).tagValues());
+                appBoundaryKey  = awsResponse.resourceCollection().tags().get(0).appBoundaryKey();
+                awsRequest = GetResourceCollectionRequest.builder()
+                        .resourceCollectionType(ResourceCollectionType.AWS_TAGS)
+                        .nextToken(awsResponse.nextToken())
+                        .build();
+            } while (awsResponse.nextToken() != null);
+        } catch (CfnNotFoundException ex) {
+            // Interpret empty stacks as RNF
+            if (tagValues.isEmpty()) {
+                logger.log("Empty resource collection. Throwing NotFoundException");
+                throw ex;
+            }
         }
 
         return TagCollection.builder().appBoundaryKey(appBoundaryKey).tagValues(tagValues).build();
@@ -368,7 +387,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         } catch (final ValidationException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
         }
-
         return awsResponse;
     }
 }

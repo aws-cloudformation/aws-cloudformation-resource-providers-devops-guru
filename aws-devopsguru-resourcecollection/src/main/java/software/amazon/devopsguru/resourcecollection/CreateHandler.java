@@ -25,6 +25,7 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+        logger.log(String.format("check ResourceModel from CreateHandler: %s", model.toString()));
 
         if(model.getResourceCollectionFilter().getCloudFormation() != null
                 && model.getResourceCollectionFilter().getTags() == null) {

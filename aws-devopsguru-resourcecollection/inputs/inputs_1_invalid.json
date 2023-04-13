@@ -1,8 +1,0 @@
-{
-  "ResourceCollectionFilter": {
-    "CloudFormation": {
-      "StackName1": []
-    }
-  },
-  "ResourceCollectionType": "AWS_CLOUD_FORMATION"
-}

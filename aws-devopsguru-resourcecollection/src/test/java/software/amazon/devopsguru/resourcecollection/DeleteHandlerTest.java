@@ -231,3 +231,4 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 request, new CallbackContext(), proxyClient, logger));
     }
 }
+
