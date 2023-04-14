@@ -51,6 +51,7 @@ public class Translator {
             }
             TagCollection tagCollection = tags.get(0);
             if (tagCollection.getAppBoundaryKey() == null
+                    || tagCollection.getTagValues() == null
                     || tagCollection.getTagValues().isEmpty()
                     || !tagCollection.getAppBoundaryKey().toLowerCase().startsWith("devops-guru-")) {
                 throw new CfnInvalidRequestException("Invalid AppBoundaryKey & TagValues, need to start with DevOps Guru prefix");
@@ -125,6 +126,10 @@ public class Translator {
      */
     static List<ResourceModel> translateFromListResponse(final GetResourceCollectionResponse awsResponse) {
         List<ResourceModel> models = new ArrayList<ResourceModel>();
+        if (awsResponse == null) {
+            return models;
+        }
+
         ResourceModel resourceModel = translateFromReadResponse(awsResponse);
         if ((Objects.nonNull(awsResponse.resourceCollection().cloudFormation()) && !awsResponse.resourceCollection().cloudFormation().stackNames().isEmpty()
         ) || (!awsResponse.resourceCollection().tags().isEmpty() && !awsResponse.resourceCollection().tags().get(0).tagValues().isEmpty())) {

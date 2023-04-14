@@ -1,6 +1,5 @@
 package software.amazon.devopsguru.resourcecollection;
 
-import com.amazonaws.auth.policy.Resource;
 import software.amazon.awssdk.services.devopsguru.DevOpsGuruClient;
 import software.amazon.awssdk.services.devopsguru.model.AccessDeniedException;
 import software.amazon.awssdk.services.devopsguru.model.GetResourceCollectionRequest;
@@ -23,7 +22,6 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.Arrays;
 
 public class DeleteHandler extends BaseHandlerStd {
     private Logger logger;
@@ -38,6 +36,7 @@ public class DeleteHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+        logger.log(String.format("check ResourceModel from DeleteHandler: %s", model.toString()));
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
@@ -67,11 +66,8 @@ public class DeleteHandler extends BaseHandlerStd {
             final CallbackContext callbackContext){
         UpdateResourceCollectionResponse awsResponse = null;
 
-        if(model.getResourceCollectionType() == null
-                || (model.getResourceCollectionFilter().getCloudFormation() != null
-                && model.getResourceCollectionFilter().getTags() != null)) {
-            throw new CfnInvalidRequestException("Input request is invalid, missing ResourceCollectionType " +
-                    "or too many ResourceCollectionFilter");
+        if(model.getResourceCollectionType() == null) {
+            throw new CfnInvalidRequestException("Input request is invalid, missing ResourceCollectionType ");
         }
 
         try {

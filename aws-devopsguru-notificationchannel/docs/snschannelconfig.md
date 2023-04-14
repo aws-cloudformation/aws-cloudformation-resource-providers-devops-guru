@@ -28,9 +28,9 @@ _Required_: No
 
 _Type_: String
 
-_Minimum_: <code>36</code>
+_Minimum Length_: <code>36</code>
 
-_Maximum_: <code>1024</code>
+_Maximum Length_: <code>1024</code>
 
 _Pattern_: <code>^arn:aws[a-z0-9-]*:sns:[a-z0-9-]+:\d{12}:[^:]+$</code>
 

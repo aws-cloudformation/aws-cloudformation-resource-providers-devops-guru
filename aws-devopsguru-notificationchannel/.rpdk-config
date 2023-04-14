@@ -20,5 +20,6 @@
         "codegen_template_path": "guided_aws",
         "protocolVersion": "2.0.0"
     },
+    "logProcessorEnabled": "true",
     "executableEntrypoint": "software.amazon.devopsguru.notificationchannel.HandlerWrapperExecutable"
 }
