@@ -52,9 +52,8 @@ public class Translator {
             TagCollection tagCollection = tags.get(0);
             if (tagCollection.getAppBoundaryKey() == null
                     || tagCollection.getTagValues() == null
-                    || tagCollection.getTagValues().isEmpty()
-                    || !tagCollection.getAppBoundaryKey().toLowerCase().startsWith("devops-guru-")) {
-                throw new CfnInvalidRequestException("Invalid AppBoundaryKey & TagValues, need to start with DevOps Guru prefix");
+                    || tagCollection.getTagValues().isEmpty()) {
+                throw new CfnInvalidRequestException("Invalid AppBoundaryKey or TagValues");
             }
             if (tagCollection.getTagValues().contains("*") && tagCollection.getTagValues().size() > 1) {
                 throw new CfnInvalidRequestException("Star selection can only be used in isolation");
